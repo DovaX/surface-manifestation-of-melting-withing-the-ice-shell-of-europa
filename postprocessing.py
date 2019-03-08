@@ -113,16 +113,66 @@ def logarithmic(x):
         x[i] = math.log10(x[i])
     return x
 
-dir1 = "20x20\\ALE_results_c1\\"
-dir2 = "20x20\\Blankenbach_results_c1\\"
-dir3 = ("Viscoplastic_results_c5_26\\")
-dir4 = "40x40\\Viscoplastic_results_c2_8\\"
-dir5 = "40x40\\Viscoplastic_results_c3_8\\"
-dir6 = "40x40\\Viscoplastic_results_c4_8\\"
-dir7 = "40x40\\Viscoplastic_results_c5_8\\"
-case_no = "5"
+dir1 = "ALE_results_c1\\"
+dir2 = "Blankenbach_results_c1\\"
+
+dir3 = ("40x40\\Viscoplastic_results_c2_8\\")
+#dir4 = "40x40\\Viscoplastic_results_c2_8\\"
+#dir5 = "40x40\\Viscoplastic_results_c3_8\\"
+#dir6 = "40x40\\Viscoplastic_results_c4_8\\"
+#dir7 = "40x40\\Viscoplastic_results_c5_8\\"
+case_no = "2"
 
 
+plot2 = MyPlot()
+x, y = prepare_xy_data_from_file(dir1 + "h1.dat")
+x2, y2 = prepare_xy_data_from_file(dir2 + "h1.dat")
+x3, y3 = prepare_xy_data_from_file("klara_results\\ale_top_bndry.dat")
+x4, y4 = prepare_xy_data_from_file("klara_results\\dtopo_top_bndry.dat")
+plot2.append_data(
+    x, y, 'r', 'Arbitrary Lagrangian Eulerian method', linewidth=2.0)
+plot2.append_data(x2, y2, 'k', 'Dynamic topography', linewidth=2.0)
+plot2.append_data(x3,y3, c='g', label='Klara - ALE')
+plot2.append_data(x4,y4, c='b', label='Klara - Dynamic topography')
+plot2.construct_plot("Displacement", "Time", "$\Delta h$",
+                     save="klara_dynamic_topography.png")
+
+
+
+plot3 = MyPlot()
+x, y = prepare_xy_data_from_file(dir2 + "Nusselt.dat")
+x2, y2 = prepare_xy_data_from_file(dir2 + "Nusselt_benchmark.dat")
+#x3, y3 = prepare_xy_data_from_file("klara_results\\ale_top_bndry.dat")
+#x4, y4 = prepare_xy_data_from_file("klara_results\\dtopo_top_bndry.dat")
+plot3.append_data(
+    x, y, 'r', 'Nusselt number', linewidth=2.0)
+plot3.append_data(x2, y2, 'k', 'Benchmark nusselt number', linewidth=2.0)
+#plot2.append_data(x3,y3, c='g', label='Klara - ALE')
+#plot2.append_data(x4,y4, c='b', label='Klara - Dynamic topography')
+plot3.construct_plot("Nusselt number", "Time", "$Nu$",
+                     save="blankenbach_nusselt.png",xymin=[0,0],xymax=[0.30,7.5])
+
+
+plot4 = MyPlot()
+x, y = prepare_xy_data_from_file(dir2 + "Rmsvel.dat")
+x2, y2 = prepare_xy_data_from_file(dir2 + "Rmsvel_benchmark.dat")
+#x3, y3 = prepare_xy_data_from_file("klara_results\\ale_top_bndry.dat")
+#x4, y4 = prepare_xy_data_from_file("klara_results\\dtopo_top_bndry.dat")
+plot4.append_data(
+    x, y, 'r', 'Rms velocity', linewidth=2.0)
+plot4.append_data(x2, y2, 'k', 'Benchmark rms velocity', linewidth=2.0)
+#plot2.append_data(x3,y3, c='g', label='Klara - ALE')
+#plot2.append_data(x4,y4, c='b', label='Klara - Dynamic topography')
+plot4.construct_plot("Rms velocity", "Time", "$v_{rms}$",
+                     save="blankenbach_rmsvel.png",xymin=[0,0],xymax=[0.30,100])
+
+
+
+
+
+
+
+"""
 plot1 = MyPlot()
 x, y = prepare_xy_data_from_file(dir1 + "h1.dat")
 x2, y2 = prepare_xy_data_from_file(dir1 + "h2.dat")
@@ -179,7 +229,7 @@ plot4.append_data(x2, y2, 'k', 'Fixed domain', linewidth=2.0)
 #plot4.append_data(x3,y6, 'g', 'Klara - ALE')
 #plot4.append_data(x4,y5, 'b', 'Klara - Dynamic topography')
 plot4.construct_plot("Rms velocity", "Time", "$v_{rms}$", save="rmsvel.png")
-
+"""
 
 # VISCOPLASTICITY ###################x
 
@@ -251,6 +301,9 @@ plot8.construct_plot(
     "Depth",
     save="vp_t_depth_profile_c" + case_no + ".png",
     figsize=(5, 5),
+    xymin=[0,0],
+    xymax=[1,1]
+    
 )
 
 
@@ -272,7 +325,7 @@ plot9.construct_plot(
     "Depth",
     save="vp_eta_depth_profile_c" + case_no + ".png",
     xymin=[-5, 0],
-    xymax=[1, 1],
+    xymax=[0, 1],
     figsize=(5, 5),
 )
 
@@ -292,8 +345,8 @@ plot10.construct_plot(
     "$v_{rms}$",
     "Depth",
     save="vp_rms_depth_profile_c" + case_no + ".png",
-    xymin=[0, 0],
-    xymax=[250, 1],
+    xymin=[90, 0],
+    xymax=[220, 1],
     figsize=(5, 5),
 )
 
@@ -315,16 +368,16 @@ plot11.construct_plot(
     figsize=(5, 5),
 )
 
-
+"""
 plot12 = MyPlot()
-x, y, z = prepare_xy_data_from_file(dir4 + "eta_minmax.dat", columns=3)
+x, y, z = prepare_xy_data_from_file(dir3 + "eta_minmax.dat", columns=3)
 y = logarithmic(y)
 z = logarithmic(z)
 plot12.append_data(x, y, 'r', '$\eta_{max}$, Viscoplasticity - case 3')
 plot12.append_data(x, z, 'g', '$\eta_{min}$, Viscoplasticity - case 3')
 plot12.construct_plot("$\eta_{min/max}$", "$Time$", "$log_{10}\eta$",
                       save="vp_eta_minmax_c3.png", xymin=[0, -8], figsize=(5, 5))
-
+"""
 
 plot13 = MyPlot()
 x, y, z = prepare_xy_data_from_file(dir3 + "top_v_x.dat", columns=3)
@@ -340,14 +393,14 @@ plot13.construct_plot(
     figsize=(7, 5),
 )
 
-
+"""
 plot14 = MyPlot()
 x, y, z = prepare_xy_data_from_file(dir4 + "top_v_x.dat", columns=3)
 plot14.append_data(x, y, 'r', '$v^{surf}$, Viscoplasticity - case 3')
 plot14.append_data(x, z, 'g', '$v_{max}^{surf}$, Viscoplasticity - case 3')
 plot14.construct_plot("$v^{surf}$", "$Time$", "$v^{surf}$", save="top_v_x_c3.png", xymin=[
                       0, 0], xymax=[0.2, 1500], figsize=(7, 5))
-
+"""
 
 plot15 = MyPlot()
 x, y = plot15.load_data(dir3 + "Rmsvel.dat")

@@ -22,15 +22,21 @@ else:
     var = 1
 """
 
-var2 = 3
-var = 5
+#Parametry běhu
+var2 = 4 
+var = 1
 
 picard = True
-results_number = 49
+results_number = 58 #Number of the directory
 
-disc = 40
+disc = 400 # Number of elements in x-axis
 
-write_data_interval = 1  # 20 #will print data once per x steps
+
+
+if var2==4:    
+    write_data_interval = 1  # 20 #will print data once per x steps
+else:
+    write_data_interval = 10
 
 lmin = 0.0
 hmin = 0.0
@@ -51,7 +57,10 @@ if (var == 1 or var == 2 or var == 3 or var == 4 or var == 5):
     Ra = 1e4  # Raighley number
     eta0 = 1.0  # viskozitni parametr
     # Time-stepping parameters
-    t_end = 2.0
+    if var2!=4:
+        t_end = 1.0
+    else:
+        t_end = 5.0
     dt = Constant(0.0001)  # Constant(0.0005)
     theta = Constant(1.0)  # Crank-Nicolson scheme
     ez = Constant((0.0, 1.0))
@@ -133,7 +142,7 @@ if var2 == 4:
     lmin_inclusion = -0.02
     lmax_inclusion = 0.02
     hmin_inclusion = 0.0
-    hmax_inclusion = 0.021
+    hmax_inclusion = 0.02
 
     def C_fc(eps_II):
         C1 = conditional(le(eps_II, eps_0), C_0, C_0 +
@@ -504,13 +513,12 @@ if var2 == 4:
     F_cell = -dot(grad(test_eps), v*eps_II_)*dx
     F_int = dot(jump(test_eps, n), jump(eps_II_, n))*vn*dS + \
         dot(v("+"), jump(test_eps, n))*avg(eps_II_)*dS
-    F_outflow = dot(v, jump(test_eps, n))*avg(eps_II_)*ds(1)
-    # """zahrnout outflow na horni hranici a pak vymazat moji stabilizaci v eta_eff nahore ve funkci"""
-    # """pridat hranicni (posledni) integral z pietro - stranka 4 rovnice nad phi_h^*"""
+    #Když se odkomentuje outflow v F1 - přestane mi to fungovat
+    #F_outflow = dot(v, jump(test_eps, n))*avg(eps_II_)*ds(1)#(1)
 
     F1 = (1.0/dt)*(eps_II_-eps_II_prev)*test_eps*dx + F_cell + \
-        F_int - second_invariant(grad(v)+grad(v).T)*test_eps*dx
-
+        F_int - second_invariant((grad(v)+grad(v).T)/2)*test_eps*dx# + F_outflow
+    
     # F1 = (1.0/dt)*(eps_II_-eps_II_prev)*test_eps*dx + dot(v,grad(eps_II_))*test_eps*dx - second_invariant(grad(v)+grad(v).T)*test_eps*dx
     F2_picard = inner(eta_eff(p, eps_II, v_k, x, t)*(grad(v_)+transpose(grad(v_))),
                       grad(psi))*dx-p_*div(psi)*dx-ksi*div(v_)*dx + rho*g*dot(psi, ez)*dx
