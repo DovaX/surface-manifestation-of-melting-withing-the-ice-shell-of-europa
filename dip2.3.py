@@ -23,17 +23,18 @@ else:
 """
 
 #Parametry behu
-var2 =4
+var2 =5
 var = 1
 
 picard = True
-results_number = 75 #Number of the directory
+results_number = 80 #Number of the directory
 
 disc = 400 # Number of elements in x-axis
 
+angle = 3
 
 
-if var2==4:    
+if var2==4 or var2==5:    
     write_data_interval = 1  # 20 #will print data once per x steps
 else:
     write_data_interval = 10
@@ -57,7 +58,7 @@ if (var == 1 or var == 2 or var == 3 or var == 4 or var == 5):
     Ra = 1e4  # Raighley number
     eta0 = 1.0  # viskozitni parametr
     # Time-stepping parameters
-    if var2!=4:
+    if var2!=4 and var2!=5:
         t_end = 1.0
     else:
         t_end = 5.0
@@ -124,7 +125,7 @@ if (var == 1 or var == 2 or var == 3 or var == 4 or var == 5):
             return(2*(eta_l*eta_p)/(eta_l+eta_p))
 
 
-if var2 == 4:
+if var2 == 4 or var2==5:
 
     eps_0 = 0.0
     eps_inf = 0.1
@@ -132,7 +133,7 @@ if var2 == 4:
     C_inf = 20
     rho = 2700
     g = 1.0
-    angle_phi = math.pi/18*3  # 10
+    angle_phi = math.pi/18*angle
     lmin = -2.0
     lmax = 2.0
     hmin = 0.0
@@ -168,7 +169,8 @@ if var2 == 4:
     # sigma_min = 0.1, pridat (2.30 formula)
     def yield_str(p, eps_II):
 
-        return(p*math.sin(angle_phi)+C_fc(eps_II)*math.cos(angle_phi))
+        sigma_min = 0.1
+        return(max(sigma_min),p*math.sin(angle_phi)+C_fc(eps_II)*math.cos(angle_phi))
 
     def second_invariant(dot_eps):
 
@@ -196,7 +198,7 @@ if var2 == 4:
 xdiscretization = disc
 ydiscretization = int(xdiscretization*(hmax-hmin)/(lmax-lmin))
 
-if var2 == 4:
+if var2 == 4 or var2 == 5:
     mesh = RectangleMesh(Point(lmin, hmin), Point(
         lmax, hmax), xdiscretization, ydiscretization, "crossed")
 else:
@@ -213,6 +215,8 @@ if var2 == 3:
     name = "Viscoplastic"
 if var2 == 4:
     name = "Plastic"
+if var2 == 5:
+    name = "ALE_Plastic"
 
 
 directory = name+"_results_c"+str(var)+"_"+str(results_number)
@@ -256,13 +260,14 @@ VPspace = FunctionSpace(mesh, MixedElement([Velement, Pelement]))
 
 rms_fc = Function(Pspace)
 
-if(var2 == 2):
+if var2 == 2 or var2 == 5:
     HVelement = VectorElement("CG", mesh.ufl_cell(), 1)
     HVspace = FunctionSpace(mesh, HVelement)
 
-if var2 == 4:
+if var2 == 4 or var2==5:
     EPSelement = FiniteElement("DG", mesh.ufl_cell(), 0)
     EPSspace = FunctionSpace(mesh, EPSelement)
+
 
 # Create boundary markers
 boundary_parts = FacetFunction('size_t', mesh)
@@ -271,7 +276,7 @@ bottom = AutoSubDomain(lambda x: near(x[1], hmin))
 left = AutoSubDomain(lambda x: near(x[0], lmin))
 right = AutoSubDomain(lambda x: near(x[0], lmax))
 
-if var2 == 4:
+if var2 == 4 or var2 == 5:
     top.mark(boundary_parts, 1)
     bottom.mark(boundary_parts, 2)
     left.mark(boundary_parts, 3)
@@ -293,7 +298,7 @@ else:
     # *0.01 slower beginning
     T_init = Expression('(1-x[1])+sin(2*pi*x[0])*sin(pi*x[1])*0.01', degree=2)
 
-if var2 == 4:
+if var2 == 4 or var2 == 5:
     # eps_init = Expression('(x[0]+2)*0.01',degree=2)
     # eps_init = Expression('x[1]-x[0]*x[0]*0.01',degree=2)
     eps_init = Expression('0.0', degree=2)
@@ -316,7 +321,7 @@ else:
     print(2)
     # bcs_h = []
 
-if var2 == 4:
+if var2 == 4 or var2==5:
     # bc_pressure = DirichletBC(VPspace.sub(1), Expression("0.0",degree=1), "near(x[0],0.0) && near(x[1],1.0)", method="pointwise")
     bc_left = DirichletBC(VPspace.sub(0).sub(
         0), Constant(2.0), boundary_parts, 3)
@@ -365,18 +370,18 @@ v_, p_ = split(w_)
 
 
 # Mesh functions
-if var2 == 2:
+if var2 == 2 or var2==5:
     h = Function(HVspace)
     h_k = Function(HVspace)
     h_ = TrialFunction(HVspace)
     htest = TestFunction(HVspace)
     dh = Function(HVspace)
 
-if var2 == 3 or var2 == 4:
+if var2 == 3 or var2 == 4 or var2 == 5:
     eta_fc = Function(Pspace)
 
 
-if var2 == 4:
+if var2 == 4 or var2==5:
     eps_II_prev = Function(EPSspace)
     eps_II = Function(EPSspace)
     eps_II_ = TrialFunction(EPSspace)
@@ -388,7 +393,7 @@ if var2 == 4:
 # Free surface problem
 # ========================================================
 # delta h free surface bcs
-if(var2 == 2):
+if(var2 == 2 or var2==5):
 
     bc_h_bot = DirichletBC(HVspace.sub(1), Constant(0.0), boundary_parts, 2)
     bcs_hx = DirichletBC(HVspace.sub(0), Constant(0.0), omega)
@@ -460,11 +465,11 @@ elif var2 == 2 or var2 == 1:
 
 # Prepare solution function and solver
 
-if var2 != 4:
+if var2 != 4 and var2!=5:
     problem1 = LinearVariationalProblem(lhs(F1), rhs(F1), T, bcT)
     solver1 = LinearVariationalSolver(problem1)
 
-if(var2 == 2):
+if(var2 == 2) or var2==5:
     problem_h_pr = LinearVariationalProblem(lhs_h_pr, rhs_h_pr, h, bcs_h)
     solver_h_pr = LinearVariationalSolver(problem_h_pr)
     solver_h_pr.parameters['linear_solver'] = "cg"
@@ -513,7 +518,6 @@ if var2 == 4:
     F_cell = -dot(grad(test_eps), v*eps_II_)*dx
     F_int = dot(jump(test_eps, n), jump(eps_II_, n))*vn*dS + \
         dot(v("+"), jump(test_eps, n))*avg(eps_II_)*dS
-    #Kdyz se odkomentuje outflow v F1 - prestane mi to fungovat
     F_outflow = dot(v,n)*eps_II_*test_eps*ds(1)#dot(v, jump(test_eps, n))*avg(eps_II_)*ds(1)#(1)
 
     F1 = (1.0/dt)*(eps_II_-eps_II_prev)*test_eps*dx + F_cell + \
@@ -533,15 +537,68 @@ if var2 == 4:
     solver1.parameters['linear_solver'] = "mumps"
     solver2_picard.parameters['linear_solver'] = "mumps"
 
+
+# =========================== Shearbands with ALE ==============================
+
+if var2 == 5:
+
+    
+    v_cor = dh/dt
+    lam = Constant(1.0)
+    #F1 = (1.0/dt)*(T_-T0)*phi*dx + theta*dot(v-v_cor, grad(T_))*phi*dx +  \
+    #    (1.0-theta)*dot(v-v_cor, grad(T0))*phi*dx +  \
+    #    k*dot(grad(T_), grad(phi))*theta*dx + \
+    #    k*dot(grad(T0), grad(phi))*(1-theta)*dx
+    #F2 = inner(eta(T, x)*(grad(v_)+transpose(grad(v_))), grad(psi))*dx \
+    #    - p_*div(psi)*Ra/(alpha*deltaT)*dx-ksi*div(v_)*dx \
+    #    + Ra*(1/(alpha*deltaT)-T)*dot(psi, ez)*dx \
+    #    + lam*dt*Ra*(1/(alpha*deltaT)-T)*dot(ez, psi)*inner(v_, n)*ds(1)
+    
+    w_k = Function(VPspace)
+    v_k, p_k = split(w_k)
+
+    vn = abs(dot(v("+")-v_cor("+"), n("+")))/2.0
+    F_cell = -dot(grad(test_eps), (v-v_cor)*eps_II_)*dx
+    F_int = dot(jump(test_eps, n), jump(eps_II_, n))*vn*dS + \
+        dot(v("+")-v_cor("+"), jump(test_eps, n))*avg(eps_II_)*dS
+    F_outflow = dot(v-v_cor,n)*eps_II_*test_eps*ds(1)#dot(v, jump(test_eps, n))*avg(eps_II_)*ds(1)#(1)
+
+    F1 = (1.0/dt)*(eps_II_-eps_II_prev)*test_eps*dx + F_cell + \
+        F_int - second_invariant((grad(v)+grad(v).T)/2)*test_eps*dx + F_outflow
+    
+    # F1 = (1.0/dt)*(eps_II_-eps_II_prev)*test_eps*dx + dot(v,grad(eps_II_))*test_eps*dx - second_invariant(grad(v)+grad(v).T)*test_eps*dx
+    F2_picard = inner(eta_eff(p, eps_II, v_k, x, t)*(grad(v_)+transpose(grad(v_))),
+                      grad(psi))*dx-p_*div(psi)*dx-ksi*div(v_)*dx + rho*g*dot(psi, ez)*dx+lam*dt*rho*g*dot(ez, psi)*inner(v_, n)*ds(1)
+
+    problem1 = LinearVariationalProblem(lhs(F1), rhs(F1), eps_II, bcEPS)
+    solver1 = LinearVariationalSolver(problem1)
+    
+    problem2_picard = LinearVariationalProblem(
+        lhs(F2_picard), rhs(F2_picard), w, bcs)  # ,DF2_picard)
+    solver2_picard = LinearVariationalSolver(problem2_picard)
+    
+    solver1.parameters['linear_solver'] = "mumps"
+    solver2_picard.parameters['linear_solver'] = "mumps"
+
+
+
+
+
+
 # Prepare initial condition
 T0.interpolate(T_init)
 
-if var2 == 4:
+if var2 == 4 or var2 == 5:
     eps_II_prev.interpolate(eps_init)
 
-if (var2 == 2):
+if (var2 == 2) or var2 == 5:
     h.interpolate(h_init)
     h_k.interpolate(h_init)
+
+
+
+
+
 
 
 def open_XDMF_files(var2, directory):
@@ -558,21 +615,21 @@ def open_XDMF_files(var2, directory):
     fV.parameters["flush_output"] = True
     fP.parameters["flush_output"] = True
 
-    if (var2 == 2):
+    if var2 == 2 or var2 == 5:
         file_h = XDMFFile(comm, directory+"/h.xdmf")
         file_h.parameters["flush_output"] = True
         file_h.parameters["rewrite_function_mesh"] = True
         h.rename("h", "h")
         file_h.write(h, 0)
 
-    if var2 == 3 or var2 == 4:
+    if var2 == 3 or var2 == 4 or var2 == 5:
         file_eta = XDMFFile(comm, directory+"/eta.xdmf")
         file_eta.parameters["flush_output"] = True
 
         eta_fc.rename("eta_fc", "eta_fc")
         file_eta.write(eta_fc, 0)
 
-    if var2 == 4:
+    if var2 == 4 or var2 == 5:
         file_eps_II = XDMFFile(comm, directory+"/eps_II.xdmf")
         file_eps_II.parameters["flush_output"] = True
 
@@ -597,7 +654,7 @@ fT, fV, fP, file_h, file_eta, file_eps_II, file_rms, file_doteps = open_XDMF_fil
     var2, directory)
 
 # Time-stepping
-if var2 == 4:
+if var2 == 4 or var2 == 5:
     eps_II.interpolate(eps_init)
 
 
@@ -607,7 +664,7 @@ T.rename("T", "temperature")
 # save initial solution
 fT.write(T)
 
-if var2 == 4:
+if var2 == 4 or var2 == 5:
     file_eps_II.write(eps_II)
     file_doteps.write(doteps_II)
 
@@ -615,11 +672,16 @@ if var2 == 4:
 
 
 def Compute_dt(uvm):
+    
     h_min = MPI.min(comm, mesh.hmin())
     vm_array = uvm.vector().get_local()  # .array()
     vm_max = numpy.abs(vm_array).max()
     vm_max2 = MPI.max(comm, vm_max)
-    C_CFL = 0.5      # value of CFL - it was 0.5
+    if var2==4 or var2==5:
+    
+        C_CFL = 0.1      # value of CFL - it was 0.5   #0.3,0.1 vyzkouset
+    else:
+        C_CFL = 0.5
     dt = (C_CFL*h_min/vm_max2)
     # dt=0.001
     return (dt)
@@ -844,11 +906,11 @@ def close_XDMF_files(var2, fT, fV, fP, file_rms, file_eta, file_h, file_eps_II, 
     fV.close()
     fP.close()
     file_rms.close()
-    if var2 == 3 or var2 == 4:
+    if var2 == 3 or var2 == 4 or var2 == 5:
         file_eta.close()
-    if var2 == 2:
+    if var2 == 2 or var2 == 5:
         file_h.close()
-    if var2 == 4:
+    if var2 == 4 or var2 == 5:
         file_eps_II.close()
         file_doteps.close()
 
@@ -858,7 +920,7 @@ write_t = 0
 if var2 == 3:
     eta_fc.assign(project(eta(T, x, v), Pspace))
 
-if var2 == 4:
+if var2 == 4 or var2 == 5:
     #both quantities are projected in logarithmic scale
     eta_fc.assign(project(ln(eta_eff(p, eps_II, v_k, x, t))/ln(10), EPSspace))
     doteps_II.assign(
@@ -869,7 +931,7 @@ try:
         f_top_v_x, fNusselt, fRmsvel, file_h1, file_h2, file_h3, file_h4, file_h5, fNusseltTop, fNusseltBot, fMeanT, f_eta_minmax = open_files(
             var2, directory)
         # Solve the problem
-        if var2 == 4:
+        if var2 == 4 or var2 == 5:
             solver1.solve()
             tol = 0.0001
             iter = 0  # iteration counter
@@ -922,12 +984,12 @@ try:
         if var2 == 3:
             eta_fc.assign(project(eta(T, x, v), Pspace))
 
-        if var2 == 4:
+        if var2 == 4 or var2 == 5:
             eta_fc.assign(project(ln(eta_eff(p, eps_II, v_k, x, t))/ln(10), EPSspace))
             doteps_II.assign(
                 project(ln(second_invariant(grad(v)+grad(v).T))/ln(10), EPSspace))
         rms_fc.assign(project(rms_vel(v, hmax, lmax), Pspace))
-        if (var2 == 2):
+        if var2 == 2 or var2 == 5:
             # mesh movement
             h_k.assign(h)
             solver_h_pr.solve()
@@ -983,7 +1045,7 @@ try:
             file_h5.flush()
   
         # Move to next time step
-        if var2 == 4:
+        if var2 == 4 or var2 == 5:
             eps_II_prev.assign(eps_II)
 
         T0.assign(T)
@@ -1001,9 +1063,9 @@ try:
             fT.write(T, t)
             fV.write(v, t)
             fP.write(p, t)
-            if var2 == 2:
+            if var2 == 2 or var2 == 5:
                 file_h.write(h, t)
-            if var2 == 4:
+            if var2 == 4 or var2 == 5:
                 file_eps_II.write(eps_II, t)
                 file_doteps.write(doteps_II, t)
 
@@ -1022,7 +1084,7 @@ try:
                         "\t"+str(max_top_v_x)+"\n")
         f_top_v_x.flush()
 
-        if var2 == 4:
+        if var2 == 4 or var2 == 5:
 
             eta_fc.rename("eta", "eta")
             if write_t % write_data_interval == 0:
